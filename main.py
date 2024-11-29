@@ -1,45 +1,69 @@
-import cv2
-import mediapipe as mp
-import time
+import cv2 
+import time 
+import HandTrackingModule as htm
+from pynput.mouse import Controller, Button
+import pyautogui
 
-cap = cv2.VideoCapture(0)
+screenWidth, screenHeight = pyautogui.size()
+    
 
-mpHands = mp.solutions.hands
-hands = mpHands.Hands()
-mpDraw = mp.solutions.drawing_utils
+ 
+def detect_gesture(img, lms, detector, mouse):
+    if len(lms) != 21:
+        return None
+    
+    h, w, c = img.shape
+    index_finger_tip = lms[8]
+    middle_finger_tip = lms[12]
+    index_finger_angle = detector.findAngel(5, 6, 8)
+    middle_finger_angle = detector.findAngel(9, 10, 12)
+    index_middle_distance = detector.findDistance(8, 12, img)[0]
+    thumb_dis = detector.findDistance(4, 5, img)[0]
+ 
+    # move mouse by index finger
+    if thumb_dis < 50 and index_finger_angle > 90:
+        x = int((index_finger_tip[1]-100)/(w-200) * screenWidth )
+        y = int((index_finger_tip[2]-100)/(h-200) * screenHeight )
+        mouse.position = (x, y)
+    # left click
+    elif thumb_dis > 50 and index_finger_angle < 90 and middle_finger_angle > 90:
+        mouse.press(Button.left)
+        mouse.release(Button.left)
+        cv2.putText(img, "left click", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    # right click
+    elif thumb_dis > 50 and index_finger_angle > 90 and middle_finger_angle < 90:
+        mouse.press(Button.right)
+        mouse.release(Button.right)
+        cv2.putText(img, "right click", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-prev_time = 0 
-curr_time = 0
-maxi = 0
-while True:
-    sec, img = cap.read()
-    imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    results = hands.process(imgRGB)
+    # double click
+    elif thumb_dis > 50 and index_finger_angle < 90 and middle_finger_angle < 90 :
+        mouse.click(Button.left, 2)
+        cv2.putText(img, "double click", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    
 
-    if results.multi_hand_landmarks:
-        for handlms in results.multi_hand_landmarks:
-            for id, lm in enumerate(handlms.landmark):
-                print(img.shape)
-                h, w, c = img.shape
-                cx, cy = int(lm.x*w), int(lm.y*h)
-                print(id, cx, cy)
-                if id == 0 or id == 4:
-                    cv2.circle(img, (cx, cy), 15, (0, 255, 0), cv2.FILLED)
-                
+def main():
+    cap = cv2.VideoCapture(0) 
+    detector = htm.handDetector()	
+    mouse = Controller()
+    try:
+        while cap.isOpened():
+            sec , img = cap.read()
+            if not sec:
+                break
+            img = cv2.flip(img, 1)
+            cv2.rectangle(img , (100 , 100) , (540 , 380) , (100 , 0 , 0) , 3)
 
-            mpDraw.draw_landmarks(img, handlms, mpHands.HAND_CONNECTIONS)
+            img_processed = detector.findHands(img , True) 
+            lms = detector.findPosition(img_processed) 
+            detect_gesture(img_processed, lms, detector, mouse)
+            cv2.imshow('cam' , img)
+            if cv2.waitKey(5) & 0xFF == 27:
+                break
+    finally:
+          cap.release()
+          cv2.destroyAllWindows()
 
-    curr_time = time.time()
-    fps = 1 / (curr_time - prev_time)
-    prev_time = curr_time
 
-    maxi = max(maxi, int(fps))
-    cv2.putText(img, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 
-                3, (255, 0, 0), 3)
-
-
-    cv2.imshow("webcam", img)
-    if cv2.waitKey(5) & 0xFF == 27:
-        break
-
-print(fps)
+if __name__ == "__main__":
+    main()
