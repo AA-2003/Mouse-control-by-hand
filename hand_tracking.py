@@ -1,5 +1,3 @@
-"""Small wrapper around MediaPipe's legacy Hands solution."""
-
 import math
 
 import cv2
@@ -7,8 +5,6 @@ import mediapipe as mp
 
 
 class HandDetector:
-    """Track one hand and expose its pixel coordinates and joint angles."""
-
     def __init__(self):
         self._hands = mp.solutions.hands.Hands(
             static_image_mode=False,
@@ -20,7 +16,6 @@ class HandDetector:
         self.landmarks = []
 
     def process(self, frame):
-        """Draw the detected hand and return its 21 landmarks, or an empty list."""
         result = self._hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
         self.landmarks = []
         if result.multi_hand_landmarks:
@@ -36,7 +31,6 @@ class HandDetector:
         return self.landmarks
 
     def distance(self, first, second):
-        """Return pixel distance using the original project's depth heuristic."""
         x1, y1, depth = self.landmarks[first]
         x2, y2, _ = self.landmarks[second]
         distance = math.hypot(x2 - x1, y2 - y1)

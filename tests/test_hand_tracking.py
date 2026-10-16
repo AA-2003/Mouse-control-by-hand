@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 
 class TrackingTests(unittest.TestCase):
     def setUp(self):
-        # Exercise geometry and stale-detection handling without loading a model.
         self.cv2 = MagicMock()
         self.mp = MagicMock()
         spec = importlib.util.spec_from_file_location(

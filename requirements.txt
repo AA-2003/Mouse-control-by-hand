@@ -1,6 +1,4 @@
-# Keep the legacy mp.solutions.hands API used by this project.
 mediapipe==0.10.21
-# MediaPipe depends on opencv-contrib-python; do not also install opencv-python.
 opencv-contrib-python==4.11.0.86
 numpy==1.26.4
 PyAutoGUI==0.9.54

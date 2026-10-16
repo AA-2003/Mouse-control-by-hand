@@ -1,14 +1,10 @@
 # Mouse Control by Hand
 
-A Python webcam experiment that uses MediaPipe hand landmarks to move the mouse,
-click, and take screenshots. Built with OpenCV, MediaPipe, pynput, and PyAutoGUI.
+Control the pointer, click, and take screenshots using webcam hand gestures.
 
 ## Setup
 
-Use **64-bit Python 3.11** and a webcam. Python 3.12 also has a compatible
-MediaPipe wheel; Python 3.13+ is not supported by the pinned MediaPipe version.
-Windows is the primary target. Other desktop systems may need camera,
-accessibility, or screen-capture permissions; Linux Wayland is not supported.
+Requires a webcam and 64-bit Python 3.11 or 3.12.
 
 ```bash
 git clone https://github.com/AA-2003/Mouse-control-by-hand.git
@@ -16,41 +12,25 @@ cd Mouse-control-by-hand
 python -m venv .venv
 ```
 
-Activate the environment:
-
-```powershell
-# Windows PowerShell
-.\.venv\Scripts\Activate.ps1
-```
-
-```bash
-# macOS / Linux (X11)
-source .venv/bin/activate
-```
-
-Install dependencies and start with the preview:
+Activate with `.\.venv\Scripts\Activate.ps1` on Windows, or
+`source .venv/bin/activate` on macOS / Linux (X11).
 
 ```bash
 python -m pip install -r requirements.txt
 python main.py --dry-run
 ```
 
-Preview draws landmarks and gesture labels without moving the pointer, clicking,
-or taking screenshots. To enable desktop actions:
+Preview mode shows gestures without performing desktop actions. Run
+`python main.py` to enable mouse control. Press **Esc**, close the camera
+window, or press **Ctrl+C** to quit.
 
-```bash
-python main.py
-```
+Options: `--camera 1` selects another webcam;
+`--screenshot-dir captures` changes the screenshot directory.
 
-Press **Esc** in the camera window, close the window, or press **Ctrl+C** in the
-terminal to quit. Try `python main.py --camera 1` if the default webcam is wrong.
-Use `--screenshot-dir path/to/folder` to change where captures are saved.
+MediaPipe is pinned to 0.10.21 for the legacy Hands API. Linux Wayland
+is not supported.
 
 ## Gestures
-
-The recognizer uses the thumb-tip distance to the index knuckle and the bend
-angles of the index and middle fingers. These are simple heuristics, not a
-trained gesture classifier.
 
 | Action | Thumb near index knuckle | Index finger | Middle finger |
 | --- | --- | --- | --- |
@@ -60,51 +40,15 @@ trained gesture classifier.
 | Double click | No | Bent | Bent |
 | Screenshot | Yes | Bent | Bent |
 
-Move the index fingertip inside the rectangle to cover the screen. Pointer
-coordinates are clamped to screen bounds. Clicks and screenshots trigger once
-per held gesture, with a 0.5-second cooldown. Release the gesture or switch to
-movement before repeating it. Screenshots receive unique timestamped names in
-`screenshots/`, which Git ignores.
+Move the index fingertip inside the rectangle. Clicks and screenshots fire
+once per held gesture, with a 0.5-second cooldown. Release the gesture before
+repeating it. Screenshots are saved in `screenshots/`.
 
-The original thresholds are retained: 50 pixels for thumb distance (with the
-original depth heuristic) and 90 degrees for finger angles. Exact threshold
-boundaries are neutral when the corresponding finger is part of the rule.
-Lighting, camera distance, and hand position affect
-recognition; preview the gestures before enabling desktop actions. Movement
-uses the primary screen dimensions.
-
-## Project layout
-
-```text
-main.py             Camera loop, command-line options, and desktop actions
-hand_tracking.py    MediaPipe tracking, landmark distances, and joint angles
-gestures.py         Gesture rules, repeat suppression, and screen mapping
-tests/              Automated regression tests using unittest
-requirements.txt    Pinned direct dependencies
-```
-
-## Checks
-
-The automated tests do not need a webcam or desktop access:
+## Tests
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-GitHub Actions runs the tests and checks dependency installation on Windows with
-Python 3.11 and 3.12. Webcam tracking and real desktop actions require a manual
-check on your own machine.
-
-## Compatibility notes
-
-This project deliberately retains the older MediaPipe Hands API and pins
-[MediaPipe 0.10.21](https://pypi.org/project/mediapipe/0.10.21/).
-Newer MediaPipe releases removed `mp.solutions`; see the
-[upstream discussion](https://github.com/google-ai-edge/mediapipe/issues/6204).
-Only `opencv-contrib-python` is installed because it provides `cv2` and is also a
-MediaPipe dependency. Installing a second OpenCV package in the same environment
-can cause conflicts.
-
-This repository preserves the original project's Git history. The cleanup adds
-installation instructions, preview mode, frame-error handling, repeat suppression,
-and automated checks.
+CI checks Windows with Python 3.11 and 3.12. Webcam tracking and desktop
+actions need manual testing.

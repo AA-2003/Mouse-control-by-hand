@@ -1,4 +1,4 @@
-"""Control the mouse using webcam hand gestures, or preview with --dry-run."""
+"""Control the mouse with webcam hand gestures."""
 
 import argparse
 import time
@@ -25,7 +25,6 @@ def parse_args(argv=None):
 
 def main(argv=None):
     args = parse_args(argv)
-    # Keep --help and imports usable without a webcam, display, or optional packages.
     import cv2
 
     from hand_tracking import HandDetector

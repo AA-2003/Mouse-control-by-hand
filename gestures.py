@@ -1,5 +1,3 @@
-"""Gesture rules and event timing, independent of the camera and desktop."""
-
 from enum import Enum
 
 
@@ -12,7 +10,6 @@ class Gesture(Enum):
 
 
 def classify_gesture(thumb_distance, index_angle, middle_angle):
-    """Apply the original gesture rules; threshold boundaries stay neutral."""
     if thumb_distance < 50 and index_angle > 90:
         return Gesture.MOVE
     if thumb_distance > 50:
@@ -28,7 +25,7 @@ def classify_gesture(thumb_distance, index_angle, middle_angle):
 
 
 class GestureLatch:
-    """Trigger a discrete action once per held gesture, with a short cooldown."""
+    """Trigger once per held gesture, subject to cooldown."""
 
     def __init__(self, cooldown=0.5):
         if cooldown < 0:
@@ -49,7 +46,6 @@ class GestureLatch:
 
 
 def map_to_screen(x, y, frame_size, screen_size, margin=100):
-    """Map a camera point to the screen and clamp it to valid screen pixels."""
     width, height = frame_size
     screen_width, screen_height = screen_size
     if width <= 2 * margin or height <= 2 * margin:
